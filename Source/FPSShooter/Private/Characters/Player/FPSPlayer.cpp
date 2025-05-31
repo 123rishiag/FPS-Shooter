@@ -13,11 +13,7 @@ AFPSPlayer::AFPSPlayer()
 	Camera->SetupAttachment(GetRootComponent());
 
 	ArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Arms"));
-
-	if (ArmsMesh)
-	{
-		ArmsMesh->SetupAttachment(Camera);
-	}
+	ArmsMesh->SetupAttachment(Camera);
 }
 
 void AFPSPlayer::BeginPlay()
