@@ -6,6 +6,8 @@
 #include "Items/Weapons/Weapon.h"
 #include "WeaponRifle.generated.h"
 
+class UStaticMeshComponent;
+
 /**
  * 
  */
@@ -18,4 +20,9 @@ public:
 	AWeaponRifle(); 
 
 	virtual void Shoot() override;
+
+protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UStaticMeshComponent* ScopeMesh;
 };

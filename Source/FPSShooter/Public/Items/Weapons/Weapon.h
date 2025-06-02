@@ -26,7 +26,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	USkeletalMeshComponent* WeaponMesh;
 
-	EWeaponType WeaponType = EWeaponType::EWT_None;
+	EWeaponType WeaponType;
 
 public:
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
