@@ -13,13 +13,7 @@ void AFPSPlayerController::BeginPlay()
         if (UEnhancedInputLocalPlayerSubsystem* Subsystem = 
             ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
         {
-            for (int32 i = 0; i < InputMappingContexts.Num(); ++i)
-            {
-                if (InputMappingContexts[i])
-                {
-                    Subsystem->AddMappingContext(InputMappingContexts[i], i);
-                }
-            }
+            Subsystem->AddMappingContext(InputMappingContext, 0);
         }
     }
 }

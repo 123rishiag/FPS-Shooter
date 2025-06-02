@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Characters/Player/FPSPlayerState.h"
 #include "FPSPlayerAnimInstance.generated.h"
 
 class AFPSPlayer;
@@ -26,11 +27,14 @@ protected:
 	AFPSPlayer* OwnerCharacter;
 
 	UPROPERTY()
-	UCharacterMovementComponent* OwnerMovementComponent;
+	UCharacterMovementComponent* OwnerMovementComponent; 
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "AnimData|Locomotion")
 	float GroundSpeed;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "AnimData|Locomotion")
-	bool bHasAcceleration;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|Enum")
+	EFPSPlayerLocomotionState LocomotionState = EFPSPlayerLocomotionState::EFPSPLS_Idle;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|Enum")
+	EFPSPlayerActionState ActionState = EFPSPlayerActionState::EFPSPAS_None;
 };

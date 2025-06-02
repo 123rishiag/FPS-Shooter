@@ -28,7 +28,8 @@ void AFPSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetWalkSpeed();
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+
 	AssignWeapons();
 	SwitchWeapon(EWeaponType::EWT_Rifle);
 }
@@ -37,6 +38,51 @@ void AFPSPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UpdateLocomotionState();
+	UpdateActionState();
+}
+
+void AFPSPlayer::UpdateLocomotionState()
+{
+	if (!GetCharacterMovement()->IsMovingOnGround())
+	{
+		LocomotionState = EFPSPlayerLocomotionState::EFPSPLS_Jump;
+	}
+	else if (bIsMoving)
+	{
+		if (bIsSprinting)
+		{
+			LocomotionState = EFPSPlayerLocomotionState::EFPSPLS_Sprint;
+		}
+		else
+		{
+			LocomotionState = EFPSPlayerLocomotionState::EFPSPLS_Walk;
+		}
+	}
+	else
+	{
+		LocomotionState = EFPSPlayerLocomotionState::EFPSPLS_Idle;
+	}
+}
+
+void AFPSPlayer::UpdateActionState()
+{
+	if (bIsAiming && bIsShooting)
+	{
+		ActionState = EFPSPlayerActionState::EFPSPAS_AimShoot;
+	}
+	else if (bIsShooting)
+	{
+		ActionState = EFPSPlayerActionState::EFPSPAS_Shoot;
+	}
+	else if (bIsAiming)
+	{
+		ActionState = EFPSPlayerActionState::EFPSPAS_Aim;
+	}
+	else
+	{
+		ActionState = EFPSPlayerActionState::EFPSPAS_None;
+	}
 }
 
 void AFPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -46,18 +92,35 @@ void AFPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFPSPlayer::Move);
+		EnhancedInput->BindAction(MoveAction, ETriggerEvent::Completed, this, &AFPSPlayer::StopMove);
+
 		EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFPSPlayer::Look);
-		EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInput->BindAction(ShootAction, ETriggerEvent::Started, this, &AFPSPlayer::Shoot);
-		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this, &AFPSPlayer::SetSprintSpeed);
-		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &AFPSPlayer::SetWalkSpeed);
+
+		EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this, &AFPSPlayer::Jump);
+
+		EnhancedInput->BindAction(AimAction, ETriggerEvent::Ongoing, this, &AFPSPlayer::Aim);
+		EnhancedInput->BindAction(AimAction, ETriggerEvent::Completed, this, &AFPSPlayer::StopAim);
+
+		EnhancedInput->BindAction(ShootAction, ETriggerEvent::Ongoing, this, &AFPSPlayer::Shoot);
+		EnhancedInput->BindAction(ShootAction, ETriggerEvent::Completed, this, &AFPSPlayer::StopShoot);
+
+		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Ongoing, this, &AFPSPlayer::Sprint);
+		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &AFPSPlayer::StopSprint);
 	}
 }
+
 void AFPSPlayer::Move(const FInputActionValue& Value)
 {
-	FVector2D Input = Value.Get<FVector2D>();
-	AddMovementInput(GetActorForwardVector(), Input.Y);
-	AddMovementInput(GetActorRightVector(), Input.X);
+	FVector2D MoveInput = Value.Get<FVector2D>();
+	AddMovementInput(GetActorForwardVector(), MoveInput.Y);
+	AddMovementInput(GetActorRightVector(), MoveInput.X);
+
+	bIsMoving = true;
+}
+
+void AFPSPlayer::StopMove()
+{
+	bIsMoving = false;
 }
 
 void AFPSPlayer::Look(const FInputActionValue& Value)
@@ -73,14 +136,38 @@ void AFPSPlayer::Look(const FInputActionValue& Value)
 	Controller->SetControlRotation(ClampedRotation);
 }
 
-void AFPSPlayer::SetWalkSpeed()
+void AFPSPlayer::Sprint()
 {
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	if (ActionState == EFPSPlayerActionState::EFPSPAS_None)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+		bIsSprinting = true;
+	}
 }
 
-void AFPSPlayer::SetSprintSpeed()
+void AFPSPlayer::StopSprint()
 {
-	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	bIsSprinting = false;
+}
+
+void AFPSPlayer::Jump()
+{
+	Super::Jump();
+}
+
+void AFPSPlayer::Aim()
+{
+	if(GetCharacterMovement()->IsMovingOnGround())
+	{
+		bIsAiming = true;
+		StopSprint();
+	}
+}
+
+void AFPSPlayer::StopAim()
+{
+	bIsAiming = false;
 }
 
 void AFPSPlayer::Shoot()
@@ -88,7 +175,14 @@ void AFPSPlayer::Shoot()
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->Shoot();
+		bIsShooting = true;
+		StopSprint();
 	}
+}
+
+void AFPSPlayer::StopShoot()
+{
+	bIsShooting = false;
 }
 
 void AFPSPlayer::AssignWeapons()
@@ -96,7 +190,7 @@ void AFPSPlayer::AssignWeapons()
 	for (const FWeaponSlot& Slot : WeaponLoadout)
 	{
 		// Checking if Weapon is Assigned into player
-		if (Slot.WeaponType == EWeaponType::EWT_None || !Slot.Weapon)
+		if (!Slot.Weapon)
 		{
 			continue;
 		}
@@ -109,7 +203,7 @@ void AFPSPlayer::AssignWeapons()
 		}
 		NewWeapon->AttachToComponent(
 			ArmsMesh, FAttachmentTransformRules::SnapToTargetIncludingScale,
-			TEXT("GripPoint")
+			FName("GripPoint")
 		);
 		NewWeapon->SetOwner(this);
 		NewWeapon->DisableWeapon();
@@ -124,11 +218,6 @@ void AFPSPlayer::SwitchWeapon(EWeaponType WeaponType)
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->DisableWeapon();
-	}
-
-	if (WeaponType == EWeaponType::EWT_None)
-	{
-		CurrentWeapon = nullptr;
 	}
 
 	if (AWeapon** FoundWeapon = EquippedWeapons.Find(WeaponType))

@@ -6,11 +6,10 @@
 
 AWeapon::AWeapon()
 {
- 	PrimaryActorTick.bCanEverTick = false;
-
-	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
+	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
 	SetRootComponent(WeaponMesh);
 	WeaponMesh->SetCastShadow(false);
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AWeapon::Shoot()

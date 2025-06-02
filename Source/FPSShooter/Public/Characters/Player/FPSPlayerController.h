@@ -20,5 +20,5 @@ protected:
     virtual void BeginPlay() override;
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
-    TArray<UInputMappingContext*> InputMappingContexts;
+    UInputMappingContext* InputMappingContext;
 };
