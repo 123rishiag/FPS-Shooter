@@ -4,6 +4,7 @@
 #include "Characters/Player/FPSPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
 #include "Items/Weapons/Weapon.h"
 
@@ -16,7 +17,7 @@ AFPSPlayer::AFPSPlayer()
 
 	ArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Arms"));
 	ArmsMesh->SetupAttachment(Camera);
-	ArmsMesh->CastShadow = false;
+	ArmsMesh->SetCastShadow(false);
 
 	bUseControllerRotationPitch = true;
 	bUseControllerRotationYaw = true;
@@ -26,7 +27,8 @@ AFPSPlayer::AFPSPlayer()
 void AFPSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	SetWalkSpeed();
 	AssignWeapons();
 	SwitchWeapon(EWeaponType::EWT_Rifle);
 }
@@ -47,6 +49,8 @@ void AFPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFPSPlayer::Look);
 		EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInput->BindAction(ShootAction, ETriggerEvent::Started, this, &AFPSPlayer::Shoot);
+		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this, &AFPSPlayer::SetSprintSpeed);
+		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &AFPSPlayer::SetWalkSpeed);
 	}
 }
 void AFPSPlayer::Move(const FInputActionValue& Value)
@@ -67,6 +71,16 @@ void AFPSPlayer::Look(const FInputActionValue& Value)
 
 	FRotator ClampedRotation = FRotator(NewPitch, CurrentRotation.Yaw, CurrentRotation.Roll);
 	Controller->SetControlRotation(ClampedRotation);
+}
+
+void AFPSPlayer::SetWalkSpeed()
+{
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+}
+
+void AFPSPlayer::SetSprintSpeed()
+{
+	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 }
 
 void AFPSPlayer::Shoot()

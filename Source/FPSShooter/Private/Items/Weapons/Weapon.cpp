@@ -10,6 +10,7 @@ AWeapon::AWeapon()
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
+	WeaponMesh->SetCastShadow(false);
 }
 
 void AWeapon::Shoot()
