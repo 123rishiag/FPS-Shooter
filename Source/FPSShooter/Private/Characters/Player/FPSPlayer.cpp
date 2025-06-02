@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "EnhancedInputComponent.h"
+#include "Items/Weapons/Weapon.h"
 
 AFPSPlayer::AFPSPlayer()
 {
@@ -26,6 +27,8 @@ void AFPSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	AssignWeapons();
+	SwitchWeapon(EWeaponType::EWT_Rifle);
 }
 
 void AFPSPlayer::Tick(float DeltaTime)
@@ -68,8 +71,55 @@ void AFPSPlayer::Look(const FInputActionValue& Value)
 
 void AFPSPlayer::Shoot()
 {
-	if (GEngine)
+	if (CurrentWeapon)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Shoot called!"));
+		CurrentWeapon->Shoot();
+	}
+}
+
+void AFPSPlayer::AssignWeapons()
+{
+	for (const FWeaponSlot& Slot : WeaponLoadout)
+	{
+		// Checking if Weapon is Assigned into player
+		if (Slot.WeaponType == EWeaponType::EWT_None || !Slot.Weapon)
+		{
+			continue;
+		}
+
+		// Checking if weapon was successfuly spawned
+		AWeapon* NewWeapon = GetWorld()->SpawnActor<AWeapon>(Slot.Weapon);
+		if (!NewWeapon)
+		{
+			continue;
+		}
+		NewWeapon->AttachToComponent(
+			ArmsMesh, FAttachmentTransformRules::SnapToTargetIncludingScale,
+			TEXT("GripPoint")
+		);
+		NewWeapon->SetOwner(this);
+		NewWeapon->DisableWeapon();
+
+		// Adding weapon to Dictionary
+		EquippedWeapons.Add(Slot.WeaponType, NewWeapon);
+	}
+}
+
+void AFPSPlayer::SwitchWeapon(EWeaponType WeaponType)
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->DisableWeapon();
+	}
+
+	if (WeaponType == EWeaponType::EWT_None)
+	{
+		CurrentWeapon = nullptr;
+	}
+
+	if (AWeapon** FoundWeapon = EquippedWeapons.Find(WeaponType))
+	{
+		CurrentWeapon = *FoundWeapon;
+		CurrentWeapon->EnableWeapon();
 	}
 }
