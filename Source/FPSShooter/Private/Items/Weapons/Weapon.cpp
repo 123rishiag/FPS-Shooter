@@ -3,6 +3,7 @@
 
 #include "Items/Weapons/Weapon.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "HUD/FPSAimUserWidget.h"
 
 AWeapon::AWeapon()
 {
@@ -10,6 +11,21 @@ AWeapon::AWeapon()
 	SetRootComponent(WeaponMesh);
 	WeaponMesh->SetCastShadow(false);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	
+}
+
+void AWeapon::BeginPlay()
+{
+	if (AimWidgetClass)
+	{
+		AimWidget = CreateWidget<UFPSAimUserWidget>(GetWorld(), AimWidgetClass);
+		if (AimWidget)
+		{
+			AimWidget->AddToViewport();
+			AimWidget->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
 }
 
 void AWeapon::Shoot()

@@ -8,6 +8,7 @@
 #include "Weapon.generated.h"
 
 class USkeletalMeshComponent;
+class UFPSAimUserWidget;
 
 UCLASS()
 class FPSSHOOTER_API AWeapon : public AActor
@@ -23,10 +24,19 @@ public:
 
 protected:
 
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	USkeletalMeshComponent* WeaponMesh;
+	USkeletalMeshComponent* WeaponMesh; 
 
 	EWeaponType WeaponType;
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UFPSAimUserWidget> AimWidgetClass;
+
+	UPROPERTY()
+	UFPSAimUserWidget* AimWidget;
 
 public:
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
