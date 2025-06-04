@@ -12,7 +12,7 @@ AWeapon::AWeapon()
 	WeaponMesh->SetCastShadow(false);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	
+	bIsShooting = false;
 }
 
 void AWeapon::BeginPlay()
@@ -30,7 +30,7 @@ void AWeapon::BeginPlay()
 
 void AWeapon::Shoot()
 {
-
+	bIsShooting = true;
 }
 
 void AWeapon::EnableWeapon()
