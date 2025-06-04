@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
 #include "Items/Weapons/Weapon.h"
+#include "Animation/AnimMontage.h"
 
 AFPSPlayer::AFPSPlayer()
 {
@@ -177,12 +178,39 @@ void AFPSPlayer::Shoot()
 		CurrentWeapon->Shoot();
 		bIsShooting = true;
 		StopSprint();
+
+		if (ActionState == EFPSPlayerActionState::EFPSPAS_Aim || 
+			ActionState == EFPSPlayerActionState::EFPSPAS_AimShoot)
+		{
+			PlayShootMontage("Aim Fire");
+		}
+		else if (ActionState == EFPSPlayerActionState::EFPSPAS_None ||
+			ActionState == EFPSPlayerActionState::EFPSPAS_Shoot)
+		{
+			PlayShootMontage("Fire");
+		}
 	}
 }
 
 void AFPSPlayer::StopShoot()
 {
 	bIsShooting = false;
+	UAnimInstance* AnimInstance = ArmsMesh->GetAnimInstance();
+	if (AnimInstance && ShootMontage)
+	{
+		AnimInstance->Montage_Stop(0.2f, ShootMontage);
+	}
+}
+
+void AFPSPlayer::PlayShootMontage(const FName& SectionName)
+{
+	UAnimInstance* AnimInstance = ArmsMesh->GetAnimInstance();
+	if (AnimInstance && ShootMontage)
+	{
+		AnimInstance->Montage_Play(ShootMontage);
+		AnimInstance->Montage_JumpToSection(SectionName, ShootMontage);
+		AnimInstance->Montage_SetNextSection(SectionName, SectionName, ShootMontage);
+	}
 }
 
 void AFPSPlayer::AssignWeapons()

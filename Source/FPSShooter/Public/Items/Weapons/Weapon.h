@@ -38,6 +38,9 @@ private:
 	UPROPERTY()
 	UFPSAimUserWidget* AimWidget;
 
+	bool bIsShooting = true;
+
 public:
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
 };

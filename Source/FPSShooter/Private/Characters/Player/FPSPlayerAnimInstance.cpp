@@ -7,18 +7,17 @@
 
 void UFPSPlayerAnimInstance::NativeInitializeAnimation()
 {
-	OwnerCharacter = Cast<AFPSPlayer>(TryGetPawnOwner());
+	Owner = Cast<AFPSPlayer>(TryGetPawnOwner());
 
 }
 
 void UFPSPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 {
-	if (!OwnerCharacter)
+	if (!Owner)
 	{
 		return;
 	}
 
-	GroundSpeed = OwnerCharacter->GetVelocity().Size2D();
-	LocomotionState = OwnerCharacter->GetLocomotionState();
-	ActionState = OwnerCharacter->GetActionState();
+	LocomotionState = Owner->GetLocomotionState();
+	ActionState = Owner->GetActionState();
 }

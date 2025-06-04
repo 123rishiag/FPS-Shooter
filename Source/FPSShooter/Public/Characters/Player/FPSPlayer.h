@@ -14,6 +14,7 @@ class USkeletalMeshComponent;
 class UCharacterMovementComponent;
 class UInputAction;
 class AWeapon;
+class UAnimMontage;
 
 USTRUCT(BlueprintType)
 struct FWeaponSlot
@@ -75,7 +76,11 @@ private:
 	UCameraComponent* Camera;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	USkeletalMeshComponent* ArmsMesh;
+	USkeletalMeshComponent* ArmsMesh; 
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Montages")
+	UAnimMontage* ShootMontage;
+
 
 #pragma endregion 
 
@@ -134,6 +139,7 @@ private:
 
 	void Shoot();
 	void StopShoot();
+	void PlayShootMontage(const FName& SectionName);
 
 	void AssignWeapons();
 	void SwitchWeapon(EWeaponType WeaponType);
